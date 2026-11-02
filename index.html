@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="สถิติผลสลากกินแบ่งรัฐบาลย้อนหลัง ตรวจหวย และคำนวณว่าถ้าซื้อเลขเดิมทุกงวดจะได้หรือเสียเท่าไหร่">
+<meta name="description" content="สถิติหวยรัฐบาลย้อนหลัง ตรวจหวย ห้องสูตรหวยพร้อมผลสอบย้อนหลัง เลขดวง และข่าวดังตีเป็นเลข">
 <style>body{margin:0;font-size:14px}*{box-sizing:border-box}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>สถิติหวยรัฐบาล</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,16 +12,16 @@
 /* Layout: one narrow column like a ticket stub; sections separated by perforation lines */
 :root{
   --paper:#EEF2EE; --card:#F8FAF7; --ink:#14302A; --muted:#5A6F68; --line:#C9D5CF;
-  --teal:#1E6B5C; --teal-soft:#D3E5DE; --stamp:#B8322A; --gold:#9A7414;
+  --teal:#1E6B5C; --teal-soft:#D3E5DE; --stamp:#B8322A; --gold:#9A7414; --gold-soft:#F1E6C8;
   --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
   --body:"IBM Plex Sans Thai","Sarabun",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0F1A17; --card:#16231F; --ink:#E3ECE8; --muted:#93A7A0; --line:#2B3B36;
-  --teal:#5DBFA6; --teal-soft:#1D3A32; --stamp:#EE7166; --gold:#D9B04F; color-scheme:dark}}
+  --teal:#5DBFA6; --teal-soft:#1D3A32; --stamp:#EE7166; --gold:#D9B04F; --gold-soft:#3A3118; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0F1A17; --card:#16231F; --ink:#E3ECE8; --muted:#93A7A0; --line:#2B3B36;
-  --teal:#5DBFA6; --teal-soft:#1D3A32; --stamp:#EE7166; --gold:#D9B04F; color-scheme:dark}
+  --teal:#5DBFA6; --teal-soft:#1D3A32; --stamp:#EE7166; --gold:#D9B04F; --gold-soft:#3A3118; color-scheme:dark}
 
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6}
 .wrap{max-width:720px;margin:0 auto;padding-block:28px 56px;
@@ -106,12 +106,37 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:10px 16px;background:var(--teal);color:var(--paper);cursor:pointer;align-self:start}
 .btn.ghost{background:transparent;color:var(--teal);border:1px solid var(--teal)}
 
-/* picker */
-.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.pick{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.pick .pn{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:.04em}
-.pick .pd{font-size:12px;color:var(--muted)}
-.pick .odds{font-size:12px;font-weight:600;color:var(--stamp)}
+/* formula room */
+.fcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+.fc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fc .top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tag{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.tag.st{background:var(--teal-soft);color:var(--teal)}
+.tag.dv{background:var(--gold-soft);color:var(--gold)}
+.fc h4{margin:0;font-size:14px;font-weight:600;line-height:1.3}
+.fc .fn{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:.05em;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fc .fn small{font-size:15px;letter-spacing:.02em;color:var(--muted);font-weight:500}
+.fc .why{font-size:12px;color:var(--muted);line-height:1.45}
+.fc .bt{font-size:12px;border-top:1px dashed var(--line);padding-top:6px;margin-top:auto}
+.fc .bt b{font-family:var(--display);font-variant-numeric:tabular-nums}
+.fc .link{font:inherit;font-size:12px;color:var(--teal);background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline}
+.score{display:flex;flex-direction:column;gap:6px}
+.srow{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 4.2em;gap:8px;align-items:center;font-size:12.5px}
+.srow .nm{overflow-wrap:anywhere;line-height:1.3}
+.track{position:relative;height:14px;background:var(--paper);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.track .band{position:absolute;top:0;bottom:0;background:var(--teal-soft)}
+.track .one{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--muted)}
+.track .bar{position:absolute;top:3px;height:6px;left:0;border-radius:3px;background:var(--teal)}
+.track .bar.out{background:var(--stamp)}
+.srow .pc{font-family:var(--display);font-variant-numeric:tabular-nums;text-align:right}
+.srow.base .nm{color:var(--muted)}
+.newslist{display:flex;flex-direction:column;gap:8px}
+.news{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start}
+.news a{color:var(--ink);font-weight:500;text-decoration:none;line-height:1.45}
+.news a:hover{text-decoration:underline}
+.news .meta{font-size:12px;color:var(--muted);grid-column:1}
+.news .nums{grid-column:2;grid-row:1 / span 2;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{font-family:var(--display);font-weight:700;font-size:20px;border:1.5px solid var(--stamp);color:var(--stamp);border-radius:6px;padding:0 7px;font-variant-numeric:tabular-nums}
 
 /* lookup */
 .lookup{display:flex;gap:8px;flex-wrap:wrap}
@@ -141,7 +166,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .chart text{font-family:var(--display);font-size:11px;fill:var(--muted)}
 .wins{font-size:13px;color:var(--muted)}
 .note{font-size:12.5px;color:var(--muted)}
-@media (max-width:480px){h2{font-size:19px}.picks{grid-template-columns:1fr}.pick{flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap}.pos{gap:4px}}
+@media (max-width:480px){h2{font-size:19px}.pos{gap:4px}.fcards{grid-template-columns:1fr 1fr}.fc .fn{font-size:28px}.srow{grid-template-columns:minmax(0,7.5em) 1fr 3.8em}}
 @media (prefers-reduced-motion:no-preference){.cell{transition:transform .12s}.cell:hover{transform:scale(1.08)}}
 </style>
 </head>
@@ -231,11 +256,34 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 
   <hr class="perf">
 
-  <section>
-    <h2>เลือกเลขงวดหน้า</h2>
-    <p class="muted">สามวิธียอดนิยม ผลลัพธ์ทางคณิตศาสตร์เท่ากันทุกวิธี เลือกตามความชอบได้เลย</p>
-    <div class="picks" id="picks"></div>
-    <button class="btn" id="repick" type="button">สุ่มเลขใหม่</button>
+  <section id="formulas">
+    <span class="eyebrow">ห้องสูตรหวย · งวด <span id="nextdraw"></span></span>
+    <h2>สูตรดังทั้งสายสถิติและสายดวง พร้อมผลสอบย้อนหลัง</h2>
+    <p class="muted">ทุกสูตรถูกนำไปใช้กับผลจริงย้อนหลังทีละงวด โดยใช้เฉพาะข้อมูลที่มีก่อนวันออกรางวัลงวดนั้น แล้วนับว่าทายเลขท้าย 2 ตัวถูกกี่ครั้ง</p>
+    <div class="fcards" id="fcards"></div>
+    <h3>ผลสอบย้อนหลังของทุกสูตร</h3>
+    <div class="score" id="score"></div>
+    <p class="note">แถบจาง = ช่วงที่การเดาสุ่มล้วน ๆ ทำได้ 95% ของกรณี · เส้นตั้ง = 1% ถ้าสูตรไหนอยู่ในแถบจาง แปลว่าไม่ต่างจากการสุ่ม</p>
+  </section>
+
+  <section id="mine">
+    <h2>เลขดวงของฉัน</h2>
+    <form class="form" id="fform">
+      <div class="field"><label for="fbirth">วันเกิด</label><input type="date" id="fbirth" value="1990-05-15"></div>
+      <div class="field"><label for="fname">ชื่อ</label><input id="fname" value="สมชาย" autocomplete="off" style="width:9em"></div>
+      <div class="field"><label for="flast">นามสกุล</label><input id="flast" value="ใจดี" autocomplete="off" style="width:9em"></div>
+      <div class="field"><label for="fzod">ปีนักษัตร</label><select id="fzod"></select></div>
+      <div class="field"><label for="fdream">ฝันเห็น</label><select id="fdream"></select></div>
+      <button class="btn" type="submit">ดูเลขของฉัน</button>
+    </form>
+    <p class="note" id="fexample">ค่าที่กรอกไว้เป็นตัวอย่าง แก้เป็นของคุณแล้วกดดูเลข</p>
+    <div class="fcards" id="mycards"></div>
+  </section>
+
+  <section id="news">
+    <h2>ข่าวดังตีเป็นเลข</h2>
+    <p class="muted">ข่าวเด่นล่าสุดจาก Google News ดึงตัวเลขในหัวข่าวมาเป็นเลข 2 ตัว ถ้าหัวข่าวไม่มีตัวเลข จะถอดค่าตัวอักษรตามเลขศาสตร์แทน · ไม่นำข่าวอุบัติเหตุ การเสียชีวิต หรืออาชญากรรมมาตีเลข</p>
+    <div class="newslist" id="newslist"></div>
   </section>
 
   <section>
@@ -499,19 +547,7 @@ function runBacktest(e){
     <p class="note">ตามคณิตศาสตร์ ${num.length===6?"สลาก 1 ใบ (80 บาท) ได้รางวัลคืนเฉลี่ยราว 48 บาท หรือ 60%":"ถ้านับเฉพาะเลขท้าย 2 ตัว ได้คืนเฉลี่ย 20 บาทต่อใบ หรือ 25%"} ยิ่งซื้อนาน ผลยิ่งเข้าใกล้ ${expPct}% · คำนวณด้วยราคา 80 บาทและเงินรางวัลชุดปัจจุบันทุกงวด${num.length===2?" · โหมด 2 หลักนับเฉพาะรางวัลเลขท้าย 2 ตัว":""}</p>`;
 }
 $("btform").addEventListener("submit", runBacktest);
-$("btrand").addEventListener("click", () => { $("btnum").value = String(rnd(1)[0]%1000000).padStart(6,"0"); runBacktest(); });
-
-/* ---------- picker ---------- */
-function pick(){
-  const idx=[...Array(100).keys()];
-  const maxC=Math.max(...ALL.cnt), hotPool=idx.filter(k=>ALL.cnt[k]>=maxC-2);
-  const coldPool=idx.slice().sort((a,b)=>gapOf(b)-gapOf(a)).slice(0,6);
-  const r=n=>rnd(1)[0]%n;
-  const h=hotPool[r(hotPool.length)], c=coldPool[r(coldPool.length)], x=r(100);
-  const card=(n,d)=>`<div class="pick"><span class="pn">${pad2(n)}</span><span class="pd">${d}</span><span class="odds">โอกาส 1%</span></div>`;
-  $("picks").innerHTML = card(h,`เลขฮอต ออก ${ALL.cnt[h]} ครั้ง`) + card(c,`เลขค้าง ไม่ออก ${gapOf(c)} งวด`) + card(x,"สุ่มล้วน ไม่ดูสถิติ");
-}
-$("repick").addEventListener("click", pick);
+$("btrand").addEventListener("click", () => { $("btnum").value = String(rnd(1)[0]%1000000).padStart(6,"0"); runBacktest(); mine(); });
 
 /* ---------- lookup ---------- */
 function lookup(){
@@ -528,11 +564,169 @@ function lookup(){
 $("go").addEventListener("click", lookup);
 $("q").addEventListener("keydown", e=>{ if(e.key==="Enter") lookup(); });
 
+/* ---------- formula room ---------- */
+const DOW = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
+const parseD = d => { const [y,m,dd] = d.split("-").map(Number); return new Date(Date.UTC(y,m-1,dd)); };
+const isoD = dt => dt.toISOString().slice(0,10);
+function nextDraw(last){
+  const dt = parseD(last), d = dt.getUTCDate();
+  return d < 16 ? isoD(new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), 16)))
+                : isoD(new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth()+1, 1)));
+}
+const NEXT = nextDraw(DATA[N-1].d);
+const dateOf = i => i < N ? DATA[i].d : NEXT;
+const WD = DATA.map(r => parseD(r.d).getUTCDay());
+$("nextdraw").textContent = `${th(NEXT)} (วัน${DOW[parseD(NEXT).getUTCDay()]})`;
+
+// last-seen index of every 2-digit number before draw i
+const LS = []; { const ls = Array(100).fill(-1); for (let i=0;i<=N;i++){ LS.push(ls.slice()); if (i<N) ls[+DATA[i].t] = i; } }
+function topOf(c, ls){ let b=null; for (const t in c) if (b===null || c[t]>c[b] || (c[t]===c[b] && ls[t]>ls[b])) b=t; return b; }
+
+// each formula: (i) => {n, why} using only draws before i, or null when it cannot run yet
+const FORMULAS = [
+  { id:"hot", tag:"st", name:"เลขฮอต 1 ปี", f(i){
+      if (i<24) return null; const c={}, ls={};
+      for (let j=i-24;j<i;j++){ const t=DATA[j].t; c[t]=(c[t]||0)+1; ls[t]=j; }
+      const n=topOf(c,ls); return {n, why:`ออกบ่อยสุดใน 24 งวดก่อนหน้า (${c[n]} ครั้ง)`}; }},
+  { id:"cold", tag:"st", name:"เลขค้างนานสุด", f(i){
+      if (i<50) return null; const ls=LS[i]; let b=0;
+      for (let k=1;k<100;k++) if (ls[k]<ls[b]) b=k;
+      return {n:pad2(b), why: ls[b]<0 ? "ยังไม่เคยออกเลย" : `ไม่ออกมาแล้ว ${i-1-ls[b]} งวด นานที่สุดในตอนนั้น`}; }},
+  { id:"same", tag:"st", name:"งวดเดียวกันปีก่อน", f(i){
+      const dt=parseD(dateOf(i)), y=dt.getUTCFullYear()-1, m=dt.getUTCMonth(), d=dt.getUTCDate();
+      let best=null, bd=4;
+      for (let j=Math.max(0,i-30); j<i; j++){ const x=parseD(DATA[j].d);
+        if (x.getUTCFullYear()===y && x.getUTCMonth()===m){ const dd=Math.abs(x.getUTCDate()-d); if (dd<bd){ bd=dd; best=j; } } }
+      return best===null ? null : {n:DATA[best].t, why:`เลขท้าย 2 ตัวงวด ${th(DATA[best].d)}`}; }},
+  { id:"wday", tag:"st", name:"สถิติตามวันออกรางวัล", f(i){
+      const w=parseD(dateOf(i)).getUTCDay(), c={}, ls={}; let n=0;
+      for (let j=0;j<i;j++) if (WD[j]===w){ const t=DATA[j].t; c[t]=(c[t]||0)+1; ls[t]=j; n++; }
+      if (n<10) return null; const b=topOf(c,ls);
+      return {n:b, why:`ออกบ่อยสุดในงวดที่ตรงวัน${DOW[w]} (${c[b]} จาก ${n} งวด)`}; }},
+  { id:"rev", tag:"st", name:"กลับเลขงวดก่อน", f(i){
+      if (i<1) return null; const t=DATA[i-1].t;
+      return {n:t[1]+t[0], why:`เลขท้ายงวดก่อนคือ ${t} กลับหลักเป็น ${t[1]+t[0]}`}; }},
+  { id:"sum", tag:"st", name:"บวกเลขรางวัลที่ 1 งวดก่อน", f(i){
+      if (i<1) return null; const f=DATA[i-1].f, s=[...f].reduce((a,c)=>a+ +c,0);
+      return {n:pad2(s%100), why:`${f} → ${[...f].join("+")} = ${s}`}; }},
+  { id:"day", tag:"dv", name:"เลขวันที่ออกรางวัล", f(i){
+      const d=parseD(dateOf(i)).getUTCDate();
+      return {n:pad2(d), why:`ความเชื่อว่าเลขวันออกรางวัลมักออก งวดนี้วันที่ ${d}`}; }},
+];
+
+// 95% range of hits a pure random guess reaches in n draws (binomial, p = 1%)
+function band(n, p=0.01){
+  let pk=Math.pow(1-p,n), cdf=0, lo=null, hi=n;
+  for (let k=0;k<=n;k++){ if (k>0) pk = pk*(n-k+1)/k*p/(1-p); cdf+=pk;
+    if (lo===null && cdf>=0.025) lo=k; if (cdf>=0.975){ hi=k; break; } }
+  return [lo, hi];
+}
+const RESULTS = FORMULAS.map(F => {
+  let tested=0, hits=0;
+  for (let i=0;i<N;i++){ const r=F.f(i); if (!r) continue; tested++; if (r.n===DATA[i].t) hits++; }
+  return {F, tested, hits, now:F.f(N)};
+});
+const btLink = (num, label) => `<button type="button" class="link" data-bt="${num}">${label}</button>`;
+$("fcards").innerHTML = RESULTS.map(({F,tested,hits,now}) => `
+  <div class="fc"><div class="top"><span class="tag ${F.tag}">${F.tag==="st"?"สถิติ":"ดวง"}</span></div>
+    <h4>${F.name}</h4><div class="fn">${now?now.n:"–"}</div>
+    <div class="why">${now?now.why:"ข้อมูลไม่พอ"}</div>
+    <div class="bt">ย้อนหลัง ${tested} งวด ถูก <b>${hits}</b> ครั้ง (${(hits/tested*100).toFixed(1)}%)</div>
+    ${now?btLink(now.n,"ถ้าซื้อเลขนี้ทุกงวด"):""}</div>`).join("");
+
+const SCALE = 3; // percent at the right edge of each track
+$("score").innerHTML = RESULTS.map(({F,tested,hits}) => {
+  const [lo,hi]=band(tested), pc=hits/tested*100, x=v=>Math.min(100, v/SCALE*100);
+  const out = hits<lo || hits>hi;
+  return `<div class="srow" title="${hits}/${tested} งวด"><span class="nm">${F.name}</span>
+    <span class="track"><span class="band" style="left:${x(lo/tested*100)}%;width:${x(hi/tested*100)-x(lo/tested*100)}%"></span>
+    <span class="one" style="left:${x(1)}%"></span><span class="bar${out?" out":""}" style="width:${x(pc)}%"></span></span>
+    <span class="pc">${pc.toFixed(1)}%</span></div>`;
+}).join("") + `<div class="srow base"><span class="nm">เดาสุ่ม (ค่าเฉลี่ย)</span>
+  <span class="track"><span class="one" style="left:${100/SCALE}%"></span><span class="bar" style="width:${100/SCALE}%;opacity:.4"></span></span><span class="pc">1.0%</span></div>`;
+
+/* ---------- personal fortune numbers ---------- */
+const NUMVAL = {};
+Object.entries({1:"กดถทภฤาำุ่",2:"ขชงบปเแู้",3:"ฆฑฒตฃฅ๋",4:"คธรญษะโิั",5:"ฉณฌนมหฮฎฬึ",6:"จลวอใ",7:"ศสซีื๊",8:"ยพฟผฝ็",9:"ฏฐไ์"}).forEach(([n,cs]) => [...cs].forEach(c => NUMVAL[c]=+n));
+Object.entries({1:"AIJQY",2:"BKR",3:"CGLS",4:"DMT",5:"EHNX",6:"UVW",7:"OZ",8:"FP"}).forEach(([n,cs]) => [...cs].forEach(c => NUMVAL[c]=+n));
+const nameSum = s => [...s.toUpperCase()].reduce((a,c)=>a+(NUMVAL[c]||0),0);
+const ZOD = ["ชวด (หนู)","ฉลู (วัว)","ขาล (เสือ)","เถาะ (กระต่าย)","มะโรง (งูใหญ่)","มะเส็ง (งูเล็ก)","มะเมีย (ม้า)","มะแม (แพะ)","วอก (ลิง)","ระกา (ไก่)","จอ (หมา)","กุน (หมู)"];
+const DREAMS = [ // [subject, numbers, note]  numbers differ between dream books
+  ["งู",["93","83","56","66"],"ไทยรัฐให้ 93, 83 อีกตำราให้ 56, 66"],
+  ["พญานาค",["29","92"],"อีกตำราให้ 19, 56"], ["ช้าง",["19","39"],""], ["เสือ",["34","30"],""],
+  ["ทองโบราณ",["60","66"],""], ["มีคนให้ของ",["25","52"],""], ["จับปลา",["47","74"],""],
+  ["เด็กทารก",["19","91"],""], ["ญาติผู้ใหญ่ที่ล่วงลับ",["79","97"],""], ["สัตว์ใหญ่",["37","73"],""],
+  ["กบ",["62","26"],""], ["ปู",["45","98"],""], ["กุ้ง",["89","79"],""], ["ตั้งท้อง",["10","19"],""],
+  ["ตัดผม",["19","18"],""], ["ฟันหลุด",["03","05"],""], ["แฟนเก่า",["06","67"],""], ["อุจจาระ",["14","41"],""]];
+$("fzod").innerHTML = ZOD.map((z,i)=>`<option value="${i}"${i===6?" selected":""}>${z}</option>`).join("");
+$("fdream").innerHTML = DREAMS.map((d,i)=>`<option value="${i}">${d[0]}</option>`).join("");
+const seen = n => `ออกเป็นเลขท้ายมาแล้ว <b>${ALL.cnt[+n]}</b> ครั้งใน ${N} งวด (เฉลี่ย ${(N/100).toFixed(1)})`;
+function mine(e){
+  if (e){ e.preventDefault(); $("fexample").hidden = true; }
+  const cards = [];
+  const b = $("fbirth").value;
+  if (b){
+    const dt=parseD(b), w=dt.getUTCDay(), day=dt.getUTCDate(), dn=w+1, root=((day-1)%9)+1;
+    const n2=`${dn}${root}`, six=`${pad2(day)}${pad2(dt.getUTCMonth()+1)}${pad2((dt.getUTCFullYear()+543)%100)}`;
+    cards.push(`<div class="fc"><div class="top"><span class="tag dv">ดวง</span></div><h4>เลขมงคลวันเกิด</h4>
+      <div class="fn">${n2} <small>${six}</small></div>
+      <div class="why">เกิดวัน${DOW[w]} เลขประจำวัน ${dn} · วันที่ ${day} รวมหลักได้ ${root} · 6 หลักคือ วัน เดือน ปี พ.ศ.</div>
+      <div class="bt">${seen(n2)}</div>${btLink(six,"ถ้าซื้อ "+six+" ทุกงวด")}</div>`);
+  }
+  const a=$("fname").value.trim(), l=$("flast").value.trim();
+  if (a || l){
+    const sa=nameSum(a), sl=nameSum(l), tot=sa+sl, n2=pad2(tot%100);
+    cards.push(`<div class="fc"><div class="top"><span class="tag dv">ดวง</span></div><h4>เลขศาสตร์ชื่อ</h4>
+      <div class="fn">${n2}</div>
+      <div class="why">${a||"ชื่อ"} = ${sa}${l?` · ${l} = ${sl}`:""} · รวม ${tot}</div>
+      <div class="bt">${seen(n2)}</div>${btLink(n2,"ถ้าซื้อเลขนี้ทุกงวด")}</div>`);
+  }
+  const z=+$("fzod").value, nz=pad2(z+1);
+  cards.push(`<div class="fc"><div class="top"><span class="tag dv">ดวง</span></div><h4>เลขปีนักษัตร</h4>
+    <div class="fn">${nz}</div><div class="why">${ZOD[z]} ลำดับที่ ${z+1} ใน 12 นักษัตร</div>
+    <div class="bt">${seen(nz)}</div>${btLink(nz,"ถ้าซื้อเลขนี้ทุกงวด")}</div>`);
+  const [ds, dn, note] = DREAMS[+$("fdream").value];
+  cards.push(`<div class="fc"><div class="top"><span class="tag dv">ดวง</span></div><h4>ทำนายฝัน: ${ds}</h4>
+    <div class="fn">${dn.slice(0,2).join(" ")}${dn.length>2?` <small>${dn.slice(2).join(" ")}</small>`:""}</div>
+    <div class="why">ตามตำราทำนายฝัน${note?" · "+note:""}</div>
+    <div class="bt">${dn.map(n=>`${n} ออก <b>${ALL.cnt[+n]}</b> ครั้ง`).join(" · ")}</div>${btLink(dn[0],"ถ้าซื้อ "+dn[0]+" ทุกงวด")}</div>`);
+  $("mycards").innerHTML = cards.join("");
+}
+$("fform").addEventListener("submit", mine);
+
+function goBacktest(e){
+  const b = e.target.closest("[data-bt]"); if (!b) return;
+  $("btnum").value = b.dataset.bt; runBacktest();
+  $("backtest").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+$("fcards").addEventListener("click", goBacktest);
+$("mycards").addEventListener("click", goBacktest);
+
+/* ---------- news numbers (news.json is rebuilt by the GitHub workflow) ---------- */
+(async () => {
+  const box = $("newslist");
+  try {
+    const res = await fetch("news.json", {cache:"no-cache"});
+    if (!res.ok) throw 0;
+    const {items} = await res.json();
+    if (!items || !items.length) throw 0;
+    const when = s => { try { return new Date(s).toLocaleString("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); } catch(_) { return ""; } };
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    box.innerHTML = items.map(it => `<div class="news">
+      <a href="${esc(it.link)}" target="_blank" rel="noopener">${esc(it.title)}</a>
+      <div class="nums">${it.nums.map(x=>`<span class="chip">${esc(x.n)}</span>`).join("")}</div>
+      <div class="meta">${esc(it.src)}${it.when?" · "+when(it.when):""} · ${esc(it.how)}: ${it.nums.map(x=>`${esc(x.from)} → ${esc(x.n)}`).join(", ")}</div>
+    </div>`).join("");
+  } catch (_) {
+    box.innerHTML = `<div class="result"><span class="note">ข่าวจะขึ้นที่นี่หลังระบบอัปเดตรอบถัดไป (ทุกวัน 19:17 และ 23:17)</span></div>`;
+  }
+})();
+
 /* ---------- initial state: example values so every tool shows a result ---------- */
-renderRange(); simulate(); pick();
+renderRange(); simulate();
 const L = DATA[N-1];
 $("ckout").innerHTML = `<div class="result"><span class="note">ใส่เลขสลาก 6 หลักแล้วกดตรวจ · ตรวจย้อนหลังได้ถึง ${th(DATA[0].d)} · รางวัลล่าสุดงวด ${th(L.d)}</span></div>`;
-$("btnum").value = String(rnd(1)[0]%1000000).padStart(6,"0"); runBacktest();
+$("btnum").value = String(rnd(1)[0]%1000000).padStart(6,"0"); runBacktest(); mine();
 })();
 </script>
 
