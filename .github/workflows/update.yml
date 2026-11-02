@@ -2,7 +2,7 @@ name: Update results and deploy
 
 on:
   schedule:
-    # 19:17 and 23:17 Thai time every day; only redeploys when a new draw appears
+    # 19:17 and 23:17 Thai time every day: refresh news, add any new draw, redeploy
     - cron: "17 12,16 * * *"
   push:
     branches: [main]
@@ -87,17 +87,78 @@ jobs:
           fi
 
       - name: Prepare site
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         run: mkdir _site && cp index.html data.json _site/
 
+      - name: News to numbers
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          import json, re, sys, urllib.request, xml.etree.ElementTree as ET
+          from email.utils import parsedate_to_datetime
+
+          FEED = "https://news.google.com/rss?hl=th&gl=TH&ceid=TH:th"
+          # Skip tragedies, crime and lottery tips: turning someone's loss into numbers can hurt the people involved
+          SKIP = re.compile("ตาย|เสียชีวิต|ศพ|ดับสลด|ดับคาที่|ดับ\\s?\\d|สลด|อุบัติเหตุ|รถชน|ชนกัน|ถูกชน|ชนท้าย|ประสานงา|คว่ำ|ไฟไหม้|เพลิงไหม้|จมน้ำ|ฆ่า|ฆาตกร|ยิง|แทง|ข่มขืน|ล่วงละเมิด|ทำร้าย|ทารุณ|บาดเจ็บ|ระเบิด|ลักพาตัว|ผูกคอ|โดดตึก|ป่วยหนัก|โคม่า|สูญหาย|แผ่นดินไหว|น้ำท่วม|หวย|เลขเด็ด|ลอตเตอรี่|สลาก")
+          PLATE = re.compile(r"\d?[ก-ฮ]{1,2}\s?\d{1,4}")
+          THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
+          VAL = {}
+          for n, chars in {1: "กดถทภฤาำุ่", 2: "ขชงบปเแู้", 3: "ฆฑฒตฃฅ๋", 4: "คธรญษะโิั", 5: "ฉณฌนมหฮฎฬึ",
+                           6: "จลวอใ", 7: "ศสซีื๊", 8: "ยพฟผฝ็", 9: "ฏฐไ์"}.items():
+              for c in chars:
+                  VAL[c] = n
+
+          def numbers_in(title):
+              text = PLATE.sub(" ", title.translate(THAI_DIGITS)) if re.search(r"ทะเบียน", title) else title.translate(THAI_DIGITS)
+              out = []
+              for m in re.finditer(r"\d[\d,]*(?:\.\d+)?", text):
+                  raw = m.group().replace(",", "")
+                  digits = raw.replace(".", "")
+                  if re.fullmatch(r"(25|20|19)\d\d", raw):   # skip years
+                      continue
+                  if len(digits) == 1:
+                      two = "0" + digits
+                  else:
+                      two = digits[-2:]
+                  out.append({"from": m.group(), "n": two})
+              return out[:3]
+
+          def main(out_path):
+              req = urllib.request.Request(FEED, headers={"User-Agent": "Mozilla/5.0 thai-lotto-stats"})
+              xml = urllib.request.urlopen(req, timeout=30).read()
+              items = []
+              for it in ET.fromstring(xml).iter("item"):
+                  title = (it.findtext("title") or "").strip()
+                  src = (it.findtext("source") or "").strip()
+                  if src and title.endswith(" - " + src):
+                      title = title[: -len(" - " + src)]
+                  if not title or SKIP.search(title):
+                      continue
+                  nums = numbers_in(title)
+                  how = "ตัวเลขในหัวข่าว"
+                  if not nums:
+                      total = sum(VAL.get(c, 0) for c in title)
+                      nums = [{"from": f"ผลรวม {total}", "n": f"{total % 100:02d}"}]
+                      how = "ถอดค่าอักษรหัวข่าวตามเลขศาสตร์"
+                  try:
+                      when = parsedate_to_datetime(it.findtext("pubDate")).isoformat()
+                  except Exception:
+                      when = ""
+                  items.append({"title": title, "src": src, "link": it.findtext("link") or "", "when": when, "nums": nums, "how": how})
+                  if len(items) >= 8:
+                      break
+              if not items:
+                  sys.exit("no usable news items")
+              json.dump({"items": items}, open(out_path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+              print(f"{len(items)} news items")
+
+          main("_site/news.json")
+          PY
+
       - uses: actions/configure-pages@v5
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
 
       - uses: actions/upload-pages-artifact@v3
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         with:
           path: _site
 
       - id: deployment
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         uses: actions/deploy-pages@v4
