@@ -1,0 +1,103 @@
+name: Update results and deploy
+
+on:
+  schedule:
+    # 19:17 and 23:17 Thai time every day; only redeploys when a new draw appears
+    - cron: "17 12,16 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest results
+        run: git clone --depth 1 https://github.com/vicha-w/thai-lotto-archive.git /tmp/upstream
+
+      - name: Rebuild data.json
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys
+          SIX, THREE = re.compile(r"\d{6}"), re.compile(r"\d{3}")
+          COUNTS = [("SECOND", 5), ("THIRD", 10), ("FOURTH", 50), ("FIFTH", 100)]
+          src = "/tmp/upstream/lottonumbers"
+          draws = []
+          for name in sorted(os.listdir(src)):
+              if not name.endswith(".txt"):
+                  continue
+              rows = {}
+              for line in open(os.path.join(src, name), encoding="utf-8"):
+                  parts = line.split()
+                  if parts:
+                      rows[parts[0]] = parts[1:]
+              f = [x for x in rows.get("FIRST", []) if SIX.fullmatch(x)]
+              t = [x for x in rows.get("TWO", []) if re.fullmatch(r"\d{2}", x)]
+              if not f or not t:
+                  print("skipped", name)
+                  continue
+              r = {"d": name[:-4], "f": f[0], "t": t[0]}
+              for key, out in (("THREE_FIRST", "tf"), ("THREE_LAST", "tl"), ("THREE", "t3")):
+                  vals = [x for x in rows.get(key, []) if THREE.fullmatch(x)]
+                  if vals:
+                      r[out] = vals
+              prizes = []
+              for key, n in COUNTS:
+                  vals = [x for x in rows.get(key, []) if SIX.fullmatch(x)]
+                  if len(vals) != n:
+                      prizes = None
+                      break
+                  prizes += vals
+              if prizes:
+                  r["p"] = "".join(prizes)
+              draws.append(r)
+          old = json.load(open("data.json", encoding="utf-8"))
+          if len(draws) < len(old) or draws[-1]["d"] < old[-1]["d"]:
+              sys.exit(f"rejected: upstream has {len(draws)} draws, current has {len(old)}")
+          json.dump(draws, open("data.json", "w", encoding="utf-8"), separators=(",", ":"))
+          print(f"{len(old)} -> {len(draws)} draws, latest {draws[-1]['d']}")
+          PY
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          if git diff --quiet data.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data.json
+            git commit -m "Update lottery results"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare site
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
+        run: mkdir _site && cp index.html data.json _site/
+
+      - uses: actions/configure-pages@v5
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
+        with:
+          path: _site
+
+      - id: deployment
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
+        uses: actions/deploy-pages@v4
